@@ -1,4 +1,4 @@
-# Leibniz Determinant Viewer
+# Determine-Determinants Summary
 
 A web app that computes the determinant of an n x n matrix (n from 1 to 10) with the Leibniz permutation formula and lets you look at every single term of the sum. The numbers are exact: integers, decimals and fractions go in, and the answer comes out as an exact fraction.
 
