@@ -1,0 +1,85 @@
+<!doctype html>
+<!-- Solution page: shows how det(A) is built from the Leibniz terms for the matrix last calculated on the main page. Markup only; solution.js fills the elements by id and style.css (the sol- rules) styles them. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Solution - Pac that Det(A)</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app sol">
+  <div class="sol-top">
+    <div class="sol-title">
+      <a class="btn" href="index.html">Back to the matrix</a>
+      <h1>Solution</h1>
+    </div>
+    <div class="sol-badges">
+      <div class="chips" id="sol-chips"></div>
+      <div class="segmented" id="sol-mode" role="group" aria-label="Number format" hidden>
+        <button type="button" data-mode="frac" aria-pressed="true">Fractions</button>
+        <button type="button" data-mode="dec" aria-pressed="false">Decimals</button>
+      </div>
+    </div>
+  </div>
+
+  <p class="sol-status" id="sol-status" role="status" aria-live="polite"></p>
+  <p class="error" id="sol-error" role="alert" hidden></p>
+
+  <!-- Shown instead of the steps when no matrix has been calculated yet. -->
+  <section class="card" id="sol-empty" hidden>
+    <h2>No matrix yet</h2>
+    <p class="muted-strong">Calculate a determinant on the main page first, then open the solution page from the result.</p>
+  </section>
+
+  <div class="sol-steps" id="sol-steps" hidden>
+    <section class="card sol-step" aria-labelledby="sol-h1">
+      <h2 id="sol-h1"><span class="sol-num">1</span>Start from the formula</h2>
+      <div class="sol-formula mono" id="sol-formula"></div>
+    </section>
+
+    <section class="card sol-step" aria-labelledby="sol-h2">
+      <h2 id="sol-h2"><span class="sol-num">2</span>Write every nonzero term, with its sign</h2>
+      <div class="muted" id="sol-title2"></div>
+      <!-- Window controls, only used when there are too many terms to write on one page. -->
+      <div class="sol-win" id="sol-win" hidden>
+        <p class="muted-strong" id="sol-win-note"></p>
+        <div class="sol-win-row">
+          <button type="button" class="btn" id="win-first">First</button>
+          <button type="button" class="btn" id="win-back-big">Back 50 windows</button>
+          <button type="button" class="btn" id="win-prev">Previous 24</button>
+          <button type="button" class="btn" id="win-next">Next 24</button>
+          <button type="button" class="btn" id="win-fwd-big">Forward 50 windows</button>
+          <button type="button" class="btn" id="win-last">Last</button>
+          <label class="sol-goto">Go to term
+            <input id="win-goto" type="text" inputmode="numeric" maxlength="12" placeholder="e.g. 1000000" autocomplete="off" spellcheck="false">
+          </label>
+        </div>
+      </div>
+      <div class="sol-terms" id="sol-line1"></div>
+      <p class="muted-strong" id="sol-zero" hidden></p>
+    </section>
+
+    <section class="card sol-step" aria-labelledby="sol-h3">
+      <h2 id="sol-h3"><span class="sol-num">3</span>Simplify the signs</h2>
+      <div class="sol-terms" id="sol-line2"></div>
+    </section>
+
+    <section class="card sol-step" aria-labelledby="sol-h4">
+      <h2 id="sol-h4"><span class="sol-num">4</span>Add them up</h2>
+      <div class="sol-sums" id="sol-sums"></div>
+      <div class="sol-eq" id="sol-eq"></div>
+    </section>
+
+    <section class="card sol-result" aria-labelledby="sol-hr">
+      <div class="muted" id="sol-hr">Result</div>
+      <output class="sol-det mono" id="sol-det"></output>
+    </section>
+  </div>
+</div>
+<script src="jquery.min.js"></script>
+<script src="solution.js"></script>
+</body>
+</html>
