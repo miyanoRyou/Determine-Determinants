@@ -1,8 +1,10 @@
-# Determine-Determinants Summary
+# Pac that Det(A)
+
+Pac that Det(A) calculates the determinant of any matrix up to 10 x 10 with the Leibniz permutation formula. Enter integers, decimals or fractions, get an exact answer, and browse all 3.6 million terms page by page. Includes step-by-step explanations, CSV export and a cross-check against elimination.
 
 A web app that computes the determinant of an n x n matrix (n from 1 to 10) with the Leibniz permutation formula and lets you look at every single term of the sum. The numbers are exact: integers, decimals and fractions go in, and the answer comes out as an exact fraction.
 
-This file explains the whole app: the math, how to run it, how to use every control, the API, how it works inside, the limits and safeguards, and how to test and deploy it. For the shorter design notes see `ARCHITECTURE.md`.
+This file explains the whole app: the math, how to run it, how to use every control, the API, how it works inside, the limits and safeguards, and how to test and deploy it. To install and run the app step by step, start with `SETUP.md`. For the shorter design notes see `ARCHITECTURE.md`.
 
 ## Contents
 
@@ -55,7 +57,7 @@ The Dockerfile was written but has not been built in the sandbox where this app 
 
 ## Using the app
 
-The page has four areas: the result banner at the top, the matrix card on the left, the steps card on the right, and a collapsible "How the Leibniz formula works" panel at the bottom. The theme is dark with a green accent. There is no light theme.
+The page has four areas: the result banner at the top, the matrix card on the left, the steps card on the right, and a collapsible "How the Leibniz formula works" panel at the bottom. The theme is Pac-Man: a black field, maze-blue borders, a yellow accent, and ghost colors for status (cyan for positive terms, red for negative, orange for warnings). There is no light theme.
 
 ### The matrix card
 
@@ -66,7 +68,7 @@ The page has four areas: the result banner at the top, the matrix card on the le
 - **Clear.** Sets every entry to 0.
 - **Example.** Restores the built-in 6 x 6 example.
 - **Undo and Redo.** Step through your edits (up to 100). Ctrl or Cmd with Z undoes, Ctrl or Cmd with Y or with Shift+Z redoes.
-- **The grid.** Click a cell and type. The Up and Down arrow keys move between rows, and Enter moves to the next cell to the right. You can paste a block copied from a spreadsheet or text (rows on separate lines, values separated by tabs, commas, semicolons or spaces); it fills the grid starting at the cell you pasted into, up to 10 x 10.
+- **The grid.** Click a cell and type. Cells accept only digits, a dot, a slash and a minus, and only where they can still form a valid number: one leading minus, then digits, a single decimal point, or a fraction such as `3/4`. Any other keystroke (letters, spaces, a second minus, a second dot, a slash after a decimal) is ignored, and entries stop at 14 characters. The Up and Down arrow keys move between rows, and Enter moves to the next cell to the right. You can paste a block copied from a spreadsheet or text (rows on separate lines, values separated by tabs, commas, semicolons or spaces); it fills the grid starting at the cell you pasted into, up to 10 x 10.
 - **Calculate determinant.** Sends the matrix to the server. Ctrl or Cmd with Enter does the same from anywhere on the page.
 - **Out of date notice.** If you edit the matrix after calculating, the banner is marked "Out of date, press Calculate" so you never read an old answer as the current one.
 - **Picked cells.** Select a row in the steps table and the entries that permutation picks light up in the grid, one per row.
@@ -87,10 +89,13 @@ Each row is one permutation, in lexicographic order (1 2 3, 1 3 2, 2 1 3, and so
 
 - **Columns.** Index, the permutation, its sign, the product of the picked entries, and the signed term. On a phone the product moves to a second line under each row.
 - **Rows per page.** 100, 250, 500 or 1,000.
+- **Show and Order.** Show keeps All terms, only Positive ones or only Negative ones (the sign of the term after the permutation sign is applied). Order sorts by Permutation (the default lexicographic order), Highest first or Lowest first. Any filter or sort lists nonzero terms only, so it locks the nonzero switch on and hides the subtotal strip, and the running total follows the order you are viewing. The first sorted or filtered view of a large matrix takes a few seconds while the server builds an index; see [Filter and sort](#filter-and-sort).
 - **Nonzero terms only.** Most terms of a sparse matrix are zero. This switch hides them. A 6 x 6 example with 720 permutations has only 20 nonzero terms.
 - **Pager.** First, Previous, a page box where you can type a page number, Next and Last. Under the table you see which terms are on screen and the **running total** through the end of the page. On the last page the running total equals the determinant.
 - **Subtotal strip.** A bar of 40 slices of the whole permutation range. Each bar shows how much that slice adds to the sum (positive slices rise above a centre line, negative slices hang below it, with height by size). Click a bar to jump to that part of the list. It shows at a glance which stretches of terms matter.
-- **Go to permutation.** Type a permutation such as `2 3 1 4 5 6` (for matrices up to 9 x 9 you can leave out the spaces) and press Enter or Go. The table jumps to its page, selects the row and scrolls to it, and tells you "Permutation ... is number N of M". If the nonzero filter is on and that term is zero, the page tells you to turn the filter off.
+- **Solution page.** After a calculation the result card has an Open the solution page button. solution.html shows the working in four steps: the formula, every nonzero term with its sign (cyan adds, red subtracts), the same terms with the signs simplified, and the positive and negative totals subtracted to give det(A). It reads the matrix the main page saved in localStorage (determinant.solution.v1, with the main page's own saved grid as a fallback), asks the server for the result again (answered from the cache when still stored) and fetches the nonzero terms in pages of 1,000. Up to 50,000 nonzero terms are written out in full; a matrix with more shows 24 terms at a time (all permutations in order) with First, Previous, Next, Last, jumps of 50 windows and a Go to term box, plus a subtotal per window and the number of windows that add up to det(A). An all-zero matrix says every term is 0. With nothing stored the page shows an empty state.
+- **Matrix hover popup.** Hovering a row of the terms table (or moving to it with the keyboard) opens a small card with a picture of the calculated matrix, the entry that row's permutation picks in each matrix row lit (each matrix row's pick takes a ghost color in turn: red, pink, cyan, orange), the multiplication, and the signed term. It reads the matrix that was calculated, so edits you have not calculated yet do not change it. Escape or moving away closes it, and it is not shown on touch screens.
+- **Go to permutation.** Type a permutation such as `2 3 1 4 5 6` (for matrices up to 9 x 9 you can leave out the spaces) and press Enter or Go. The table jumps to its page, selects the row and scrolls to it, and tells you "Permutation ... is number N of M". If the nonzero filter is on and that term is zero, the page tells you to turn the filter off. Inside a filtered or sorted view, a permutation that is not in the view (zero term or the other sign) opens the nearest page and says so.
 - **Detail panel.** Select a row (click it, or move with the keyboard) and the panel spells out the term: the inversion count, the sign, every factor, and the product. A row whose term is zero says so.
 - **Copy this page.** Copies the rows on screen as tab-separated text, ready to paste into a spreadsheet.
 - **Download CSV.** Downloads every term (or only nonzero ones if the filter is on) in the number format you are viewing: exact fractions or decimals. A button label shows the row count. Large files take a while to start; see [Limits and performance](#limits-and-performance).
@@ -145,7 +150,7 @@ Nothing is ever rounded on the server. Decimals are converted to exact fractions
 ### The three pieces
 
 1. **`main.py`** is the FastAPI backend. It parses and validates the matrix, does all the math, keeps results in memory and serves them.
-2. **`static/`** is the frontend: `index.html` (markup), `style.css` (layout and the dark green theme) and `script.js` (all behavior, using jQuery). `main.py` serves these files itself, so there is no build step.
+2. **`static/`** is the frontend: `index.html` (markup), `style.css` (layout and the Pac-Man theme) and `script.js` (all behavior, using jQuery). `main.py` serves these files itself, so there is no build step.
 3. **Tests** (`test_app.py` and `test_ui.py`) check the math against brute force and the page against a real browser.
 
 ### The life of a calculation
@@ -184,6 +189,10 @@ While a calculation runs, the server records its progress (the rank reached out 
 - At most 2 calculations run at once; a third waits up to 30 seconds and then gets a 503.
 - At most 2 exports stream at once. A 5-minute watchdog frees the slot of a client that stops reading, and a client that disconnects frees its slot immediately.
 - A dense 10 x 10 keeps only about 2 MB in memory after the calculation.
+
+### Filter and sort
+
+The sorted and sign-filtered views need the actual term values, so they are built lazily: the first request with `sign` or `order` makes the server walk every nonzero term once, sort them, and keep only ranks (a compact array) and running-total checkpoints every 100 entries, not the terms. For a dense 10 x 10 that takes about 4 to 5 seconds and roughly 400 MB of temporary memory, one build at a time across all requests; afterwards every page, jump and running total is instant. Positive terms are a prefix of the sorted array, so each sign is a slice and Lowest first is the same slice read backwards. Positive and negative views in permutation order use their own rank lists. CSV and the other exports are unchanged and still list terms in permutation order.
 
 ### The frontend
 
@@ -245,7 +254,9 @@ Returns one page of terms.
 | `page` | 1-based page number, default 1 |
 | `limit` | rows per page, 1 to 1000, default 100 |
 | `nonzero_only` | `true` to skip zero terms, default false |
-| `at_rank` | 0-based permutation position; returns the page containing it and overrides `page` |
+| `sign` | `all` (default), `pos` or `neg`; keeps only positive or negative terms |
+| `order` | `perm` (default), `desc` or `asc`; sorts by term value, highest or lowest first |
+| `at_rank` | 0-based permutation position; returns the page containing it (inside the chosen view) and overrides `page` |
 
 Response 200 (abbreviated):
 
@@ -264,7 +275,7 @@ Response 200 (abbreviated):
       ]
     }
 
-`page_subtotal` is the sum of the terms on this page. `running_total` is the sum of all terms through the end of this page in the list you are viewing, so with the nonzero filter it counts nonzero terms only (which gives the same total, since zero terms add nothing). Permutations are 1-based, `index` is the 1-based position in the full lexicographic list, and `factors` are the entries picked row by row. A page outside the range, or an id that expired, returns 404 with the message "calculation not found or expired; submit the matrix again" (for an id).
+Any `sign` other than `all` or `order` other than `perm` lists nonzero terms only, whatever `nonzero_only` says, and the response echoes `sign` and `order`. `page_subtotal` is the sum of the terms on this page. `running_total` is the sum of all terms through the end of this page in the list you are viewing, so with the nonzero filter it counts nonzero terms only (which gives the same total, since zero terms add nothing). Permutations are 1-based, `index` is the 1-based position in the full lexicographic list, and `factors` are the entries picked row by row. A page outside the range, or an id that expired, returns 404 with the message "calculation not found or expired; submit the matrix again" (for an id).
 
 ### GET /api/determinant/progress?request_id=...
 
@@ -329,7 +340,7 @@ The server never trusts the page.
 - **Requests:** POST bodies over 32 KB get 413. Only GET, HEAD and POST are allowed. The interactive API docs are turned off.
 - **Rate limiting:** 30 uncached calculations and 30 exports per minute per client address. Behind a proxy, run `uvicorn --proxy-headers` with a trusted `--forwarded-allow-ips`, otherwise every user looks like the proxy and shares one allowance.
 - **Headers:** a Content-Security-Policy (scripts only from the app's own origin, no framing, no plugins), `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer`, a restrictive Permissions-Policy, `no-store` on API answers and `no-cache` on the page files so a deploy never mixes old and new code.
-- **Page:** cells accept only digits, dot, slash and minus; typing, pasting and saved data are all filtered the same way. Everything the server sends that reaches the page's HTML is a number or is escaped first.
+- **Page:** cells accept only digits, dot, slash and minus, and typing is further limited to text that can still become a valid entry (see The grid); pasting and saved data are filtered to the same characters. Pasted text can still be malformed, such as `1.2.3`, in which case the cell is marked invalid and Calculate is refused. Everything the server sends that reaches the page's HTML is a number or is escaped first.
 - **Resources:** bounded store, bounded concurrency, bounded export time, and cancel support.
 
 There are no user accounts. A calculation id is a hash of the matrix, not a secret, so anyone who sends the same matrix gets the same id. The app is meant for a single user or a small group.
@@ -345,9 +356,12 @@ There are no user accounts. A calculation id is a hash of the matrix, not a secr
       README.md             This file
       test_app.py           API tests, brute-force comparison
       test_ui.py            Browser tests with Playwright
+      SETUP.md              Step-by-step install and run guide
       static/
         index.html          Page markup
-        style.css           Layout and dark green theme
+        solution.html       Solution page markup
+        solution.js         Solution page behavior
+        style.css           Layout and Pac-Man theme
         script.js           All frontend behavior
         jquery.min.js       jQuery, served locally
 
@@ -359,10 +373,10 @@ Every source file begins with a comment explaining what it does and how it fits 
     playwright install chromium
     pytest
 
-The suite has 102 tests and takes about 20 seconds.
+The suite has 114 tests and takes about 20 seconds.
 
-- **`test_app.py`** checks the backend without a browser. It compares the app against brute force with `itertools.permutations` and `Fraction` on random matrices (including very sparse and fully dense ones, fractions and decimals): determinant, term order, signs, products, page subtotals, running totals on awkward page sizes, the nonzero filter, jumping to a rank, and CSV export. It also covers input validation, the hostile-input cases (NaN, Unicode digits, oversized bodies), security headers, the rate limiter, duplicate and foreign request ids, export slot cleanup and the busy server response.
-- **`test_ui.py`** starts a real server and drives Chromium: the starting result, row selection, the nonzero switch, fraction and decimal input and the display switch, error display, undo and redo, keyboard shortcuts and row navigation, progress and cancel, recovery from an expired calculation, character filtering and paste cleanup, saved state, corrupt saved state, the teaching panel, jump to permutation, copy, CSV download, and a phone-width layout without sideways scrolling. These tests skip themselves if Playwright or its browser is not installed.
+- **`test_app.py`** checks the backend without a browser. It compares the app against brute force with `itertools.permutations` and `Fraction` on random matrices (including very sparse and fully dense ones, fractions and decimals): determinant, term order, signs, products, page subtotals, running totals on awkward page sizes, the nonzero filter, jumping to a rank, and CSV export. It also covers every sign and order combination against brute force (including running totals and `at_rank` pages), input validation, the hostile-input cases (NaN, Unicode digits, oversized bodies), security headers, the rate limiter, duplicate and foreign request ids, export slot cleanup and the busy server response.
+- **`test_ui.py`** starts a real server and drives Chromium: the starting result, row selection, the nonzero switch, fraction and decimal input and the display switch, error display, undo and redo, keyboard shortcuts and row navigation, progress and cancel, recovery from an expired calculation, character filtering and paste cleanup, saved state, corrupt saved state, the teaching panel, jump to permutation, the Show and Order controls, character blocking while typing, the hover popup, the solution page, copy, CSV download, and a phone-width layout without sideways scrolling. These tests skip themselves if Playwright or its browser is not installed.
 
 Not yet covered: Safari and Firefox (tests run in Chromium only), a screen reader pass, and an automated accessibility audit.
 
