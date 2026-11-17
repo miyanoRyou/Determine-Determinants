@@ -57,7 +57,7 @@ The Dockerfile was written but has not been built in the sandbox where this app 
 
 ## Using the app
 
-The page has four areas: the result banner at the top, the matrix card on the left, the steps card on the right, and a collapsible "How the Leibniz formula works" panel at the bottom. The theme is Pac-Man: a black field, maze-blue borders, a yellow accent, and ghost colors for status (cyan for positive terms, red for negative, orange for warnings). There is no light theme.
+The page has four areas: the matrix card on the left with the result card under it, the steps card on the right, and a collapsible "How the Leibniz formula works" panel at the bottom. The theme is Pac-Man: a black field, maze-blue borders, a yellow accent, and ghost colors for status (cyan for positive terms, red for negative, orange for warnings). There is no light theme.
 
 ### The matrix card
 
@@ -70,12 +70,12 @@ The page has four areas: the result banner at the top, the matrix card on the le
 - **Undo and Redo.** Step through your edits (up to 100). Ctrl or Cmd with Z undoes, Ctrl or Cmd with Y or with Shift+Z redoes.
 - **The grid.** Click a cell and type. Cells accept only digits, a dot, a slash and a minus, and only where they can still form a valid number: one leading minus, then digits, a single decimal point, or a fraction such as `3/4`. Any other keystroke (letters, spaces, a second minus, a second dot, a slash after a decimal) is ignored, and entries stop at 14 characters. The Up and Down arrow keys move between rows, and Enter moves to the next cell to the right. You can paste a block copied from a spreadsheet or text (rows on separate lines, values separated by tabs, commas, semicolons or spaces); it fills the grid starting at the cell you pasted into, up to 10 x 10.
 - **Calculate determinant.** Sends the matrix to the server. Ctrl or Cmd with Enter does the same from anywhere on the page.
-- **Out of date notice.** If you edit the matrix after calculating, the banner is marked "Out of date, press Calculate" so you never read an old answer as the current one.
+- **Out of date notice.** If you edit the matrix after calculating, the result card is marked "Out of date, press Calculate" so you never read an old answer as the current one.
 - **Picked cells.** Select a row in the steps table and the entries that permutation picks light up in the grid, one per row.
 
-### The result banner
+### The result card
 
-It shows `det(A) =` and the value, with chips for the number of permutations, the number of nonzero terms and whether the permutation sum matches elimination. When the value is a fraction, a line under it gives the decimal form, and the other way round.
+It sits under the matrix card and shows `det(A)` and the value, with chips for the matrix size, the number of permutations, the number of nonzero terms and whether the permutation sum matches elimination. When the value is a fraction, a line under it gives the decimal form, and the other way round.
 
 If any entry was a fraction or decimal you also get a **Fractions / Decimals** switch. Fractions are exact. Decimals are rounded to 8 places and marked with an approximation sign. The switch changes how every number on the page is shown, not what was computed. If you typed decimals the page starts in decimal mode; otherwise fractions.
 
@@ -200,7 +200,7 @@ The sorted and sign-filtered views need the actual term values, so they are buil
 
 - Grid: building the inputs, reading them, sizing the layout from the matrix size so a 10 x 10 still fits.
 - Calculate: the POST, the progress polling, the cancel button and the error handling.
-- Rendering: the banner, the strip, the table (only one page of rows in the page at a time), the detail panel, the picked-cell highlighting and the teaching panel.
+- Rendering: the result card, the strip, the table (only one page of rows in the page at a time), the detail panel, the picked-cell highlighting and the teaching panel.
 - Paging: loading pages, the nonzero switch, rows per page, the jump box, and the quiet retry after a 404.
 - Conveniences: undo and redo, keyboard shortcuts, paste cleanup, localStorage, copy and CSV download.
 
