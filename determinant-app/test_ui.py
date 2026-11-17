@@ -402,7 +402,7 @@ def test_labels_follow_calculated_size_not_grid_size(page):
     page.click("#size-down")
     page.click("#size-down")
     page.click('#mode-seg button[data-mode="dec"]')
-    assert "6 × 6" in page.inner_text("#hero-label")
+    assert "6 × 6" in page.inner_text("#chips")
     page.click("#steps-body .row >> nth=2")
     assert "Every term" not in page.inner_text("#learn-expansion")
     assert page.locator("#growth div.now").text_content().startswith("n=6")

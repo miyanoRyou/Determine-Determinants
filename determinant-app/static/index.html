@@ -22,33 +22,6 @@
     </div>
   </header>
 
-  <!-- Hero result: determinant (#det-value, #det-alt), count chips (#chips), stale badge and fraction/decimal toggle (#mode-seg). Filled by renderResult(); hidden until a calculation succeeds. -->
-  <section class="hero" id="result" aria-live="polite" aria-labelledby="hero-label" hidden>
-    <div class="hero-main">
-      <div class="hero-label">
-        <span id="hero-label">Determinant</span>
-        <span class="badge" id="hero-stale" hidden>Out of date, press Calculate</span>
-      </div>
-      <div class="hero-value"><span class="eq">det(A) =</span><output id="det-value"></output></div>
-      <div class="hero-alt" id="det-alt" hidden></div>
-    </div>
-    <div class="hero-side">
-      <div class="chips" id="chips"></div>
-      <!-- Link to solution.html, which reads the matrix saved by script.js (saveSolution) after each calculation. Shown by renderResult(). -->
-      <a class="btn primary" id="open-solution" href="solution.html" hidden>Open the solution page</a>
-      <div class="mode" id="mode-wrap" hidden>
-        <div class="mode-row">
-          <span>Show values as</span>
-          <div class="segmented" id="mode-seg" role="group" aria-label="Number format">
-            <button type="button" data-mode="frac" aria-pressed="false">Fractions</button>
-            <button type="button" data-mode="dec" aria-pressed="false">Decimals</button>
-          </div>
-        </div>
-        <div class="note" id="mode-note"></div>
-      </div>
-    </div>
-  </section>
-
   <div class="layout">
     <div class="left" id="left">
       <!-- Matrix card: size control, toolbar and the grid. Cells are inputs built by buildGrid(); layout() sizes them; refreshGrid() marks the cells picked by the selected term. -->
@@ -98,6 +71,32 @@
         </div>
       </section>
 
+    <!-- Result card under the matrix card: determinant (#det-value, #det-alt), count chips (#chips), stale badge and fraction/decimal toggle (#mode-seg). Filled by renderResult(); hidden until a calculation succeeds. -->
+    <section class="hero" id="result" aria-live="polite" aria-labelledby="hero-label" hidden>
+      <div class="hero-main">
+        <div class="hero-label">
+          <span id="hero-label">Determinant</span>
+          <span class="badge" id="hero-stale" hidden>Out of date, press Calculate</span>
+        </div>
+        <div class="hero-value"><output id="det-value"></output></div>
+        <div class="hero-alt" id="det-alt" hidden></div>
+      </div>
+      <div class="hero-side">
+        <div class="chips" id="chips"></div>
+        <!-- Link to solution.html, which reads the matrix saved by script.js (saveSolution) after each calculation. Shown by renderResult(). -->
+        <a class="btn primary" id="open-solution" href="solution.html" hidden>Open the solution page</a>
+        <div class="mode" id="mode-wrap" hidden>
+          <div class="mode-row">
+            <span>Show values as</span>
+            <div class="segmented" id="mode-seg" role="group" aria-label="Number format">
+              <button type="button" data-mode="frac" aria-pressed="false">Fractions</button>
+              <button type="button" data-mode="dec" aria-pressed="false">Decimals</button>
+            </div>
+          </div>
+          <div class="note" id="mode-note"></div>
+        </div>
+      </div>
+    </section>
     </div>
 
     <!-- Steps card: the permutation viewer. Hidden until a result exists; renderResult() shows it and loadPage() fills it through renderSteps(). -->

@@ -566,8 +566,8 @@ $(function () {
   // fixed text, not user input.
   function renderResult() {
     var det = fmt(state.det);
-    $('#det-value').text(det).css('font-size', det.length <= 8 ? '' : det.length <= 12 ? '44px' : det.length <= 18 ? '34px' : det.length <= 28 ? '26px' : '18px');
-    $('#hero-label').text('Determinant of the ' + state.calcN + ' × ' + state.calcN + ' matrix');
+    $('#det-value').text(det).css('font-size', det.length <= 8 ? '' : det.length <= 12 ? '34px' : det.length <= 18 ? '26px' : det.length <= 28 ? '20px' : '16px');
+    $('#hero-label').text('det(A)');
     var r = parseRat(state.det);
     if (r.d !== 1n) {
       $('#det-alt').text(state.mode === 'frac'
@@ -577,6 +577,7 @@ $(function () {
       $('#det-alt').prop('hidden', true);
     }
     var chips = [
+      state.calcN + ' × ' + state.calcN,
       big(state.total) + ' permutations',
       big(state.nzTerms) + ' nonzero terms',
       state.check ? 'Permutation sum matches elimination' : 'Permutation sum differs from elimination'

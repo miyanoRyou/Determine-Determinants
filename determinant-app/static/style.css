@@ -205,29 +205,26 @@ a.btn { display: inline-flex; align-items: center; justify-content: center; text
 /* Hero result: determinant value, stale badge, chips */
 .hero {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px 32px;
-  padding: 22px 28px;
-  background: color-mix(in srgb, var(--accent) 9%, var(--surface));
-  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border));
-  border-radius: 14px;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
   transition: opacity 0.15s;
 }
-.hero-main { flex: 1 1 360px; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
-.hero-label { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-soft); }
+.hero-main { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.hero-label { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-size: 13px; color: var(--muted); }
 .badge { font-size: 12px; font-weight: 600; letter-spacing: 0; text-transform: none; padding: 3px 10px; border-radius: 999px; background: color-mix(in srgb, var(--warn) 18%, var(--surface)); color: var(--warn); }
-.hero-value { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px; min-width: 0; }
-.eq { font: 500 22px var(--mono); color: var(--muted); }
+.hero-value { display: flex; flex-wrap: wrap; align-items: baseline; min-width: 0; }
 #det-value {
-  font: 700 56px/1.1 var(--mono);
+  font: 700 44px/1.15 var(--mono);
   letter-spacing: -0.02em;
   overflow-wrap: anywhere;
   min-width: 0;
 }
-.hero-alt { font: 500 15px var(--mono); color: var(--text-soft); }
-.hero-side { flex: 0 1 420px; display: flex; flex-direction: column; gap: 12px; align-items: flex-start; }
+.hero-alt { font: 500 14px var(--mono); color: var(--text-soft); }
+.hero-side { display: flex; flex-direction: column; gap: 14px; align-items: flex-start; }
 .hero.outdated #det-value, .hero.outdated .hero-alt { opacity: 0.45; }
 body.busy .hero { opacity: 0.6; }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -394,8 +391,7 @@ body.busy #btn-calc { opacity: 0.6; cursor: progress; }
   .toolbar .btn { font-size: 14px; padding-left: 4px; padding-right: 4px; }
   .app { padding: 20px 16px 40px; }
   .card { padding: 16px; }
-  .hero { padding: 18px 16px; }
-  .eq { font-size: 18px; }
+  .hero { padding: 16px; }
   #det-value { font-size: 40px; }
   .row { grid-template-columns: var(--idx-w) minmax(0, 1fr) 36px fit-content(45%); gap: 0 10px; }
   button.row .term { grid-row: 1; grid-column: 4; }
