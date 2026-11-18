@@ -88,3 +88,81 @@ Line numbers are from the current file and will shift if the code changes.
 | Cross-check | `gaussian_determinant` (298), compared with the permutation sum in `calculate` (928) |
 | Endpoints | `calculate` (928), `steps` (1033) |
 | Safeguards | `CalculationStore` (756), `RateLimiter` (847), `guard` middleware (910), `Job` (327) and `Cancelled` (321) for progress and cancel |
+
+## 7. More questions
+
+### Complexity and correctness
+
+**What is the time and memory complexity?**
+Time is O(n! x n) in the worst case, a matrix with no zeros, because every permutation is visited and each term takes about n multiplications. Zero entries prune branches, so sparse matrices do much less work. Memory for the nonzero filter is at most n!/2 ranks stored as 4-byte integers, about 7 MB for a dense 10 x 10. The sorted views are the expensive part, with about 400 MB temporarily during the first build.
+
+**Is the elimination cross-check really independent? What if both methods share a bug?**
+They share only the parsed input. The permutation sum works on row-scaled integers, while elimination works directly on exact fractions with row swaps and pivoting, so a scaling or sign bug in one would not appear in the other. Both could still be wrong if parsing were wrong, which is why the tests also compare against brute force built from plain `itertools.permutations`, and why parsing has its own tests.
+
+**What happens with edge cases such as a 1 x 1 matrix, an all-zero matrix, or a singular matrix?**
+A 1 x 1 matrix has one term, the entry itself. An all-zero matrix has no nonzero terms, so the determinant is 0, the nonzero list is empty, and the solution page says every term is 0. A singular matrix just gives a determinant of 0, which the elimination cross-check also reports. All three are covered by tests.
+
+**Why does the app scale rows by a least common multiple instead of using fractions throughout?**
+Integer arithmetic is faster and simpler than fraction arithmetic across millions of terms, since fractions would need a gcd on every multiplication. Scaling a row multiplies the determinant by the scale factor, so the app divides by the product of the factors once at the end and the result stays exact.
+
+**Why are decimals limited to 6 places?**
+A decimal like 0.123456 becomes a fraction with denominator 10^6. Long decimals produce huge denominators, which slow every term. The limit keeps the integer sizes manageable. The error message for a longer decimal is not very clear, and that is a known limitation.
+
+### Design choices
+
+**Why FastAPI and Python for the backend?**
+Python has built-in arbitrary-precision integers and exact `Fraction`, which this app depends on. FastAPI gives request validation through Pydantic and a simple, fast API with little code. The trade-off is that pure Python is slower than a compiled language for the permutation walk, which is why the app prunes zero branches and finishes the last two rows directly.
+
+**Why do the calculation on the server instead of in the browser?**
+Browsers can do exact arithmetic with BigInt, but 3.6 million terms in the page's single thread would freeze the interface. On the server the work runs once, results are paged, and the browser only renders one page of rows at a time. The server also provides progress, cancel and a rate limit.
+
+**Why jQuery and not a modern framework?**
+The page has a small number of fixed regions, so a framework would add a build step without much benefit. jQuery is served locally, so the page needs no internet connection after it is installed, and the backend serves the frontend files itself with no build step.
+
+**Why page the results instead of showing all terms at once?**
+A 10 x 10 has 3.6 million rows, which no browser can hold in the page. The app loads 100 to 1,000 rows at a time, so the page stays fast regardless of matrix size.
+
+**Why is the solution page a separate page?**
+It writes out the full working in four steps, which for a large matrix needs the whole width. It reads the calculated matrix from the browser's localStorage and asks the server again, so it works on its own. Up to 50,000 nonzero terms are written out in full. Beyond that it shows 24 terms at a time with navigation and a subtotal for each window.
+
+**What does the hover popup show?**
+It shows the calculated matrix with the entries that permutation picks lit, one per row in a ghost color, along with the multiplication and the signed term. It reads the matrix that was calculated, so unsaved edits do not change it, and it is hidden on touch screens.
+
+### Reliability and concurrency
+
+**How do progress and cancel work?**
+A calculation that runs longer than about 0.3 seconds shows a progress bar. The page polls a progress endpoint using a request id. The search checks progress and a cancel flag only near the top levels of the search tree, which keeps the cost negligible. Cancel sets the flag and the search stops with a `Cancelled` exception.
+
+**What if two users calculate the same matrix?**
+The calculation id is a hash of the matrix, so the second request is answered from the cache and gets the same id. This is also why the id is not a secret.
+
+**What if many users calculate large matrices at once?**
+Concurrency is bounded and the server answers 503 when it is busy. Sorted-index builds run one at a time so their temporary memory does not stack up. There is also a rate limit of 30 uncached calculations a minute per client address. The app is designed for one user or a small group, so heavy simultaneous use is outside its design.
+
+**Why must it run with one worker?**
+Results, progress jobs, the rate limiter and export slots live in one process's memory. With several workers a follow-up request could reach a worker that has never seen the id and return 404.
+
+### Privacy and usability
+
+**Is user data stored or sent anywhere?**
+The matrix is sent only to the app's own server, kept in memory for up to an hour (8 results at most), and not written to disk. The browser saves the matrix, the rows-per-page choice and the solution page's matrix in localStorage. There are no accounts, analytics or external requests.
+
+**Does the app work offline?**
+Once the server is running, yes. The page loads no outside scripts or fonts that it depends on, and jQuery is bundled. It does need the server running, which can be on the same computer.
+
+**How accessible is it?**
+The page has labels, keyboard support and a sensible focus order, and the table can be navigated with the arrow, Home, End and Page keys. However, no screen reader testing or automated accessibility audit has been done, and the subtotal strip adds 40 tab stops before the table.
+
+**Why a Pac-Man theme?**
+It is a visual choice that keeps the page high-contrast on a dark background. Positive terms are cyan and negative terms are red, so they can be told apart quickly, and the hover popup colors each row's pick in a different ghost color so the picks are easy to follow.
+
+### Testing and deployment
+
+**What do the tests not cover?**
+Safari and Firefox, screen readers, an automated accessibility audit, very long-running load tests, and the Docker image.
+
+**How would you deploy it?**
+Run one Uvicorn worker, either directly or in the Docker image, behind a reverse proxy if it is public. Behind a proxy, start Uvicorn with `--proxy-headers` and a trusted `--forwarded-allow-ips` so the rate limiter sees each visitor's address. Because there are no accounts, only expose it to trusted users.
+
+**What would break first if the app became popular?**
+Memory and CPU. Each large calculation and each sorted index takes seconds and hundreds of MB, and the in-memory store works only in one process. Scaling up would need shared storage and a queue for large jobs, or a faster algorithm for large matrices alongside the Leibniz view.
