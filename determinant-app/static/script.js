@@ -53,7 +53,7 @@ $(function () {
   var INT_RE = /^([+-]?)(\d+)$/;
   var DEC_RE = /^([+-]?)(\d*)\.(\d*)$/;
   var FRAC_RE = /^([+-]?)(\d+)\s*\/\s*(\d+)$/;
-  // Example matrix, used on first load without saved data and by the Example button.
+  // Example matrix, used on first load without saved data.
   var SAMPLE = [
     ['3', '0', '2', '0', '1', '0'],
     ['0', '4', '0', '1', '0', '2'],
@@ -334,7 +334,7 @@ $(function () {
 
   // Rebuilds the n x n inputs from values (missing entries become '0') and
   // updates the size controls. Writes state.n. Called by init, setSize, restore
-  // (undo/redo) and the Example button.
+  // (undo/redo).
   function buildGrid(n, values) {
     $matrix.empty();
     for (var i = 0; i < n; i++) {
@@ -400,24 +400,16 @@ $(function () {
   // Current grid as a JSON string, the unit stored in the undo history.
   function snapshot() { return JSON.stringify(readStrings()); }
 
-  // Enables Undo/Redo buttons. Undo stays enabled at the first entry if the grid
-  // has uncommitted edits (typed but not yet pushed to history).
-  function updateUndo() {
-    $('#btn-undo').prop('disabled', hi <= 0 && snapshot() === hist[hi]);
-    $('#btn-redo').prop('disabled', hi >= hist.length - 1);
-  }
-
   // Records the current grid in the undo history (dropping any redo tail) and
   // schedules a save. Called after each committed edit (change event, paste,
   // fill, resize, example). No-op if nothing changed.
   function pushHistory() {
     var snap = snapshot();
-    if (hist[hi] === snap) { updateUndo(); scheduleSave(); return; }
+    if (hist[hi] === snap) { scheduleSave(); return; }
     hist = hist.slice(0, hi + 1);
     hist.push(snap);
     if (hist.length > 100) hist.shift();
     hi = hist.length - 1;
-    updateUndo();
     scheduleSave();
   }
 
@@ -431,7 +423,6 @@ $(function () {
     showError('');
     buildGrid(rows.length, rows);
     if (fr !== null) $matrix.find('.cell[data-r="' + Math.min(fr, rows.length - 1) + '"][data-c="' + Math.min(fc, rows.length - 1) + '"]').focus();
-    updateUndo();
   }
 
   // Ctrl/Cmd+Z and Undo button. Pushes pending edits first so they can be redone.
@@ -1010,13 +1001,6 @@ $(function () {
     fillAll(function () { return '0'; });
   });
   $('#btn-calc').on('click', calculate);
-  $('#btn-example').on('click', function () {
-    showError('');
-    buildGrid(SAMPLE.length, SAMPLE);
-    pushHistory();
-  });
-  $('#btn-undo').on('click', undo);
-  $('#btn-redo').on('click', redo);
 
   // Cancel button for a running calculation: marks it cancelled, tells the server to
   // stop the job with the same request id, and aborts the local request.
@@ -1076,7 +1060,6 @@ $(function () {
     $(this).data('last', c);
     layout();
     refreshGrid();
-    updateUndo();
     scheduleSave();
   });
 
@@ -1098,7 +1081,6 @@ $(function () {
       $(this).data('last', restored);
       layout();
       refreshGrid();
-      updateUndo();
       scheduleSave();
     }
     $(this).data('start', this.value);

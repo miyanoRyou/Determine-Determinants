@@ -151,14 +151,10 @@ def test_paste_keeps_only_valid_text(page):
 
 
 def test_undo_redo(page):
-    """Undo and redo work from the buttons and from Ctrl+Z and Ctrl+Y."""
+    """Undo and redo work from Ctrl+Z and Ctrl+Y."""
     cell = '.cell[data-r="0"][data-c="0"]'
     page.fill(cell, "9")
     page.press(cell, "Tab")
-    page.click("#btn-undo")
-    assert page.input_value(cell) == "3"
-    page.click("#btn-redo")
-    assert page.input_value(cell) == "9"
     page.keyboard.press("Control+z")
     assert page.input_value(cell) == "3"
     page.keyboard.press("Control+y")
@@ -270,7 +266,7 @@ def test_paste_is_sanitised(page):
 
 
 def test_matrix_persists_across_reload(page, base_url):
-    """The matrix and rows-per-page choice survive a reload, and Example restores the sample matrix."""
+    """The matrix and rows-per-page choice survive a reload."""
     page.fill('.cell[data-r="0"][data-c="0"]', "7/3")
     page.press('.cell[data-r="0"][data-c="0"]', "Tab")
     page.click('#size-seg button[data-size="250"]')
@@ -279,8 +275,6 @@ def test_matrix_persists_across_reload(page, base_url):
     page.wait_for_selector("#steps-body .row")
     assert page.input_value('.cell[data-r="0"][data-c="0"]') == "7/3"
     assert page.get_attribute('#size-seg button[data-size="250"]', "aria-pressed") == "true"
-    page.click("#btn-example")
-    assert page.input_value('.cell[data-r="0"][data-c="0"]') == "3"
 
 
 def test_corrupt_saved_data_is_ignored(browser, base_url):
