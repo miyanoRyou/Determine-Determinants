@@ -155,6 +155,38 @@ $(function () {
     return { n: sign === '-' ? -num : num, d: den };
   }
 
+  // True when text is a valid entry or an unfinished one that can still grow into a valid entry.
+  // This is the one rule every way of putting text into a cell goes through: typing, drag and drop,
+  // paste and commit. Unfinished means an optional minus, then nothing, a trailing dot, or a trailing slash.
+  // Rejected: other characters, a second minus, dot or slash, a slash after a decimal, a zero denominator
+  // (a slash followed only by zeros), a value beyond the size limits (including more than 6 decimal places),
+  // and text longer than MAX_ENTRY_CHARS.
+  function entryAllowed(text) {
+    if (text === '') return true;
+    if (text.length > MAX_ENTRY_CHARS || !ENTRY_PREFIX_RE.test(text)) return false;
+    if (/\/0+$/.test(text)) return false;
+    var core = text.replace(/[.\/]$/, '');
+    if (core === '' || core === '-') return true;
+    return parseEntry(core) !== null;
+  }
+
+  // Inserts text into current (replacing the selection from a to b) one character at a time,
+  // keeping only the characters entryAllowed accepts. Returns the resulting string.
+  function insertAllowed(current, a, b, text) {
+    var head = current.slice(0, a);
+    var tail = current.slice(b);
+    for (var i = 0; i < text.length; i++) {
+      if (entryAllowed(head + text.charAt(i) + tail)) head += text.charAt(i);
+    }
+    return head + tail;
+  }
+
+  // A finished entry for committing: unfinished text such as "-", "3/" or "." is not a number,
+  // so it is turned back into the last valid value the cell had.
+  function committedEntry(text, fallback) {
+    return parseEntry(text) === null ? fallback : text;
+  }
+
   // Thousands-separated integer string (BigInt or Number).
   function big(x) { return x.toLocaleString('en-US'); }
 
@@ -1025,7 +1057,7 @@ $(function () {
       // repeated minus, dot or slash signs never appear. Deleting is always allowed.
       var el = e.target;
       var next = el.value.slice(0, el.selectionStart) + oe.data + el.value.slice(el.selectionEnd);
-      if (BAD_CHAR.test(oe.data) || next.length > MAX_ENTRY_CHARS || !ENTRY_PREFIX_RE.test(next)) e.preventDefault();
+      if (BAD_CHAR.test(oe.data) || !entryAllowed(next)) e.preventDefault();
     }
   });
 
@@ -1035,11 +1067,13 @@ $(function () {
   $matrix.on('input', '.cell', function () {
     var v = this.value;
     var c = cleanEntry(v);
+    if (!entryAllowed(c)) c = $(this).data('last') || '';
     if (c !== v) {
       var pos = Math.max(0, (this.selectionStart || c.length) - (v.length - c.length));
       this.value = c;
       if (this.setSelectionRange) this.setSelectionRange(pos, pos);
     }
+    $(this).data('last', c);
     layout();
     refreshGrid();
     updateUndo();
@@ -1054,6 +1088,21 @@ $(function () {
 
   // Commit point for undo history: the change event fires when a cell loses focus
   // after an edit.
+  // Remember each cell's value when it gains focus, and when it loses focus turn an unfinished entry
+  // ("-", "3/", ".") back into that value, so the grid only ever holds numbers.
+  $matrix.on('focusin', '.cell', function () { $(this).data('last', this.value).data('start', this.value); });
+  $matrix.on('change', '.cell', function () {
+    var restored = committedEntry(this.value, $(this).data('start') || '');
+    if (restored !== this.value) {
+      this.value = restored;
+      $(this).data('last', restored);
+      layout();
+      refreshGrid();
+      updateUndo();
+      scheduleSave();
+    }
+    $(this).data('start', this.value);
+  });
   $matrix.on('change', '.cell', pushHistory);
 
   // Select the whole entry on focus so typing replaces it.
@@ -1088,7 +1137,7 @@ $(function () {
       var cur = el.value;
       var a = el.selectionStart === null ? cur.length : el.selectionStart;
       var b = el.selectionEnd === null ? cur.length : el.selectionEnd;
-      el.value = (cur.slice(0, a) + one + cur.slice(b)).slice(0, MAX_ENTRY_CHARS);
+      el.value = insertAllowed(cur, a, b, one);
       $(el).trigger('input');
       $(el).trigger('change');
       return;
@@ -1098,7 +1147,9 @@ $(function () {
     var c0 = +$(this).data('c');
     $.each(parsed, function (i, row) {
       $.each(row, function (j, v) {
-        $matrix.find('.cell[data-r="' + (r0 + i) + '"][data-c="' + (c0 + j) + '"]').val(cleanEntry(v));
+        var $c = $matrix.find('.cell[data-r="' + (r0 + i) + '"][data-c="' + (c0 + j) + '"]');
+        var kept = insertAllowed('', 0, 0, cleanEntry(v));
+        $c.val(committedEntry(kept, '')).data('last', $c.val()).data('start', $c.val());
       });
     });
     layout();

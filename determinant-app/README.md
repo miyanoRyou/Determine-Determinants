@@ -57,7 +57,7 @@ The Dockerfile was written but has not been built in the sandbox where this app 
 
 ## Using the app
 
-The page has four areas: the result banner at the top, the matrix card on the left, the steps card on the right, and a collapsible "How the Leibniz formula works" panel at the bottom. The theme is Pac-Man: a black field, maze-blue borders, a yellow accent, and ghost colors for status (cyan for positive terms, red for negative, orange for warnings). There is no light theme.
+The page has four areas: the matrix card on the left with the result card under it, the steps card on the right, and a collapsible "How the Leibniz formula works" panel at the bottom. The theme is Pac-Man: a black field, maze-blue borders, a yellow accent, and ghost colors for status (cyan for positive terms, red for negative, orange for warnings). There is no light theme.
 
 ### The matrix card
 
@@ -68,14 +68,14 @@ The page has four areas: the result banner at the top, the matrix card on the le
 - **Clear.** Sets every entry to 0.
 - **Example.** Restores the built-in 6 x 6 example.
 - **Undo and Redo.** Step through your edits (up to 100). Ctrl or Cmd with Z undoes, Ctrl or Cmd with Y or with Shift+Z redoes.
-- **The grid.** Click a cell and type. Cells accept only digits, a dot, a slash and a minus, and only where they can still form a valid number: one leading minus, then digits, a single decimal point, or a fraction such as `3/4`. Any other keystroke (letters, spaces, a second minus, a second dot, a slash after a decimal) is ignored, and entries stop at 14 characters. The Up and Down arrow keys move between rows, and Enter moves to the next cell to the right. You can paste a block copied from a spreadsheet or text (rows on separate lines, values separated by tabs, commas, semicolons or spaces); it fills the grid starting at the cell you pasted into, up to 10 x 10.
+- **The grid.** Click a cell and type. A cell never holds anything that is not a valid number. Keystrokes are refused unless the text could still become a valid entry: digits, a dot, a slash and a minus only, one leading minus, a single decimal point or a fraction such as `3/4`, no slash after a decimal, no zero denominator, no more than 6 decimal places, and nothing beyond the size limits (absolute value up to 1,000,000). Pasted text, drag and drop and autofill go through the same rule, so bad characters are trimmed rather than stored. Leaving a cell with an unfinished entry such as `-` or `3/` puts back the value it had before. The Up and Down arrow keys move between rows, and Enter moves to the next cell to the right. You can paste a block copied from a spreadsheet or text (rows on separate lines, values separated by tabs, commas, semicolons or spaces); it fills the grid starting at the cell you pasted into, up to 10 x 10.
 - **Calculate determinant.** Sends the matrix to the server. Ctrl or Cmd with Enter does the same from anywhere on the page.
-- **Out of date notice.** If you edit the matrix after calculating, the banner is marked "Out of date, press Calculate" so you never read an old answer as the current one.
+- **Out of date notice.** If you edit the matrix after calculating, the result card is marked "Out of date, press Calculate" so you never read an old answer as the current one.
 - **Picked cells.** Select a row in the steps table and the entries that permutation picks light up in the grid, one per row.
 
-### The result banner
+### The result card
 
-It shows `det(A) =` and the value, with chips for the number of permutations, the number of nonzero terms and whether the permutation sum matches elimination. When the value is a fraction, a line under it gives the decimal form, and the other way round.
+It sits under the matrix card and shows `det(A)` and the value, with chips for the matrix size, the number of permutations, the number of nonzero terms and whether the permutation sum matches elimination. When the value is a fraction, a line under it gives the decimal form, and the other way round.
 
 If any entry was a fraction or decimal you also get a **Fractions / Decimals** switch. Fractions are exact. Decimals are rounded to 8 places and marked with an approximation sign. The switch changes how every number on the page is shown, not what was computed. If you typed decimals the page starts in decimal mode; otherwise fractions.
 
@@ -200,7 +200,7 @@ The sorted and sign-filtered views need the actual term values, so they are buil
 
 - Grid: building the inputs, reading them, sizing the layout from the matrix size so a 10 x 10 still fits.
 - Calculate: the POST, the progress polling, the cancel button and the error handling.
-- Rendering: the banner, the strip, the table (only one page of rows in the page at a time), the detail panel, the picked-cell highlighting and the teaching panel.
+- Rendering: the result card, the strip, the table (only one page of rows in the page at a time), the detail panel, the picked-cell highlighting and the teaching panel.
 - Paging: loading pages, the nonzero switch, rows per page, the jump box, and the quiet retry after a 404.
 - Conveniences: undo and redo, keyboard shortcuts, paste cleanup, localStorage, copy and CSV download.
 
@@ -340,7 +340,7 @@ The server never trusts the page.
 - **Requests:** POST bodies over 32 KB get 413. Only GET, HEAD and POST are allowed. The interactive API docs are turned off.
 - **Rate limiting:** 30 uncached calculations and 30 exports per minute per client address. Behind a proxy, run `uvicorn --proxy-headers` with a trusted `--forwarded-allow-ips`, otherwise every user looks like the proxy and shares one allowance.
 - **Headers:** a Content-Security-Policy (scripts only from the app's own origin, no framing, no plugins), `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer`, a restrictive Permissions-Policy, `no-store` on API answers and `no-cache` on the page files so a deploy never mixes old and new code.
-- **Page:** cells accept only digits, dot, slash and minus, and typing is further limited to text that can still become a valid entry (see The grid); pasting and saved data are filtered to the same characters. Pasted text can still be malformed, such as `1.2.3`, in which case the cell is marked invalid and Calculate is refused. Everything the server sends that reaches the page's HTML is a number or is escaped first.
+- **Page:** cells accept only digits, dot, slash and minus, and typing is further limited to text that can still become a valid entry (see The grid); pasting, drag and drop and saved data follow the same rule. Pasted text is trimmed by the same rule, so a malformed entry such as `1.2.3` becomes `1.23`. Everything the server sends that reaches the page's HTML is a number or is escaped first.
 - **Resources:** bounded store, bounded concurrency, bounded export time, and cancel support.
 
 There are no user accounts. A calculation id is a hash of the matrix, not a secret, so anyone who sends the same matrix gets the same id. The app is meant for a single user or a small group.
@@ -373,7 +373,7 @@ Every source file begins with a comment explaining what it does and how it fits 
     playwright install chromium
     pytest
 
-The suite has 114 tests and takes about 20 seconds.
+The suite has 115 tests and takes about 20 seconds.
 
 - **`test_app.py`** checks the backend without a browser. It compares the app against brute force with `itertools.permutations` and `Fraction` on random matrices (including very sparse and fully dense ones, fractions and decimals): determinant, term order, signs, products, page subtotals, running totals on awkward page sizes, the nonzero filter, jumping to a rank, and CSV export. It also covers every sign and order combination against brute force (including running totals and `at_rank` pages), input validation, the hostile-input cases (NaN, Unicode digits, oversized bodies), security headers, the rate limiter, duplicate and foreign request ids, export slot cleanup and the busy server response.
 - **`test_ui.py`** starts a real server and drives Chromium: the starting result, row selection, the nonzero switch, fraction and decimal input and the display switch, error display, undo and redo, keyboard shortcuts and row navigation, progress and cancel, recovery from an expired calculation, character filtering and paste cleanup, saved state, corrupt saved state, the teaching panel, jump to permutation, the Show and Order controls, character blocking while typing, the hover popup, the solution page, copy, CSV download, and a phone-width layout without sideways scrolling. These tests skip themselves if Playwright or its browser is not installed.

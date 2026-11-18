@@ -114,12 +114,40 @@ def test_fraction_input_and_modes(page):
     assert page.inner_text("#det-value") == "−11/4"
 
 
-def test_invalid_entry_shows_error(page):
-    """An invalid entry (a fraction with zero denominator) shows the error message and marks the cell aria-invalid."""
-    page.fill('.cell[data-r="0"][data-c="0"]', "1/0")
-    page.click("#btn-calc")
-    assert page.is_visible("#error")
-    assert page.get_attribute('.cell[data-r="0"][data-c="0"]', "aria-invalid") == "true"
+def test_invalid_entries_cannot_be_entered(page):
+    """A zero denominator, a value past the size limits and an unfinished entry never stay in a cell."""
+    cell = '.cell[data-r="0"][data-c="0"]'
+    page.click(cell)
+    page.keyboard.press("Control+a")
+    page.keyboard.type("1/0")
+    assert page.input_value(cell) == "1/"
+    page.keyboard.press("Tab")
+    assert page.input_value(cell) == "3"
+    page.click(cell)
+    page.keyboard.press("Control+a")
+    page.keyboard.type("1.12345678")
+    assert page.input_value(cell) == "1.123456"
+    page.keyboard.press("Control+a")
+    page.keyboard.type("99999999")
+    assert page.input_value(cell) == "999999"
+    page.keyboard.press("Control+a")
+    page.keyboard.type("-")
+    page.keyboard.press("Tab")
+    assert page.input_value(cell) == "3"
+    assert not page.is_visible("#error")
+
+
+def test_paste_keeps_only_valid_text(page):
+    """Pasted text is filtered by the same rule as typing, so malformed or out-of-range entries are trimmed, never stored."""
+    cell = '.cell[data-r="0"][data-c="0"]'
+    page.evaluate("""() => {
+      const el = document.querySelector('.cell[data-r="0"][data-c="0"]');
+      el.focus(); el.select();
+      const dt = new DataTransfer();
+      dt.setData('text', '1.2.3');
+      el.dispatchEvent(new ClipboardEvent('paste', { clipboardData: dt, bubbles: true, cancelable: true }));
+    }""")
+    assert page.input_value(cell) == "1.23"
 
 
 def test_undo_redo(page):
@@ -207,7 +235,7 @@ def test_phone_shows_product_without_overflow(browser, base_url):
 
 
 def test_cells_reject_unneeded_characters(page):
-    """Typing keeps only digits, dot, slash and minus, caps entries at 14 characters, and keeps the size box digits only."""
+    """Typing keeps only digits, dot, slash and minus, caps entries at the size limits, and keeps the size box digits only."""
     cell = '.cell[data-r="0"][data-c="0"]'
     page.click(cell)
     page.keyboard.press("Control+a")
@@ -215,7 +243,7 @@ def test_cells_reject_unneeded_characters(page):
     assert page.input_value(cell) == "13/2"
     page.keyboard.press("Control+a")
     page.keyboard.type("1" * 30)
-    assert len(page.input_value(cell)) == 14
+    assert page.input_value(cell) == "111111"
     page.keyboard.press("Control+a")
     page.keyboard.type("--1..2//3-")
     assert page.input_value(cell) == "-1.23"
