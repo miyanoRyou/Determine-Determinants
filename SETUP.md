@@ -81,7 +81,7 @@ To stop the server, press Ctrl + C in the terminal.
     playwright install chromium
     pytest
 
-There are 114 tests and they take about 20 seconds. The browser tests start their own server on a free port, so you do not need to start one first. If Playwright or its browser is missing, the browser tests skip themselves and the API tests still run.
+There are 115 tests and they take about 20 seconds. The browser tests start their own server on a free port, so you do not need to start one first. If Playwright or its browser is missing, the browser tests skip themselves and the API tests still run.
 
 ## Running with Docker
 
