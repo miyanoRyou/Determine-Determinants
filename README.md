@@ -66,8 +66,7 @@ The page has four areas: the matrix card on the left with the result card under 
 - **Randomize elements.** Keeps the current size and fills every cell with a random integer from -9 to 9. Size and elements are randomized separately on purpose.
 - **Identity Matrix.** Fills the grid with 1 on the diagonal and 0 elsewhere.
 - **Clear.** Sets every entry to 0.
-- **Example.** Restores the built-in 6 x 6 example.
-- **Undo and Redo.** Step through your edits (up to 100). Ctrl or Cmd with Z undoes, Ctrl or Cmd with Y or with Shift+Z redoes.
+- **Undo and redo.** There are no buttons for these, only keyboard shortcuts that step through your edits (up to 100). Ctrl or Cmd with Z undoes, Ctrl or Cmd with Y or with Shift+Z redoes.
 - **The grid.** Click a cell and type. A cell never holds anything that is not a valid number. Keystrokes are refused unless the text could still become a valid entry: digits, a dot, a slash and a minus only, one leading minus, a single decimal point or a fraction such as `3/4`, no slash after a decimal, no zero denominator, no more than 6 decimal places, and nothing beyond the size limits (absolute value up to 1,000,000). Pasted text, drag and drop and autofill go through the same rule, so bad characters are trimmed rather than stored. Leaving a cell with an unfinished entry such as `-` or `3/` puts back the value it had before. The Up and Down arrow keys move between rows, and Enter moves to the next cell to the right. You can paste a block copied from a spreadsheet or text (rows on separate lines, values separated by tabs, commas, semicolons or spaces); it fills the grid starting at the cell you pasted into, up to 10 x 10.
 - **Calculate determinant.** Sends the matrix to the server. Ctrl or Cmd with Enter does the same from anywhere on the page.
 - **Out of date notice.** If you edit the matrix after calculating, the result card is marked "Out of date, press Calculate" so you never read an old answer as the current one.
