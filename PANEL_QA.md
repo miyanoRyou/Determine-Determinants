@@ -31,7 +31,7 @@ By the parity of the inversion count, meaning the number of row pairs where the 
 Nothing uses floats. Integers, decimals and fractions are parsed into exact fractions, each row is scaled by the least common multiple of its denominators so every entry is an integer, and the calculation uses arbitrary-precision integers. The result is an exact fraction. Decimal display is rounded only for viewing and is marked as approximate.
 
 **What input is accepted?**
-Integers, decimals (up to 6 places) and fractions like `1/3`, with an optional minus sign. Typing is limited to text that can still become a valid entry, so letters, a second minus or a second dot never appear, and entries stop at 14 characters. The server validates everything again, because it never trusts the page.
+Integers, decimals (up to 6 places) and fractions like `1/3`, with an optional minus sign. Typing, pasting and drag and drop are limited to text that can still become a valid entry, so letters, a second minus or dot, a zero denominator and values past the limits never appear. An unfinished entry such as `-` is reverted when the cell loses focus. The server validates everything again, because it never trusts the page.
 
 ## 3. Performance and design
 
@@ -63,12 +63,11 @@ The page resubmits the matrix and continues, because results are kept only in me
 - There are no user accounts, so it suits one user or a small group, not a public service.
 - Tests cover Chromium only. Safari, Firefox and screen readers were not tested.
 - The Dockerfile has never been built or run.
-- A pasted entry like `1.2.3` can still get in. It is marked invalid and blocked on Calculate.
 - A dense 10 x 10 CSV is hundreds of MB and takes about a minute to produce.
 - The first sorted view of a dense 10 x 10 takes several seconds and uses about 400 MB temporarily.
 
 **How did you test it?**
-114 automated tests in about 20 seconds. Backend tests compare against brute force and cover validation, security headers, rate limiting and edge cases such as empty views. Browser tests drive a real Chromium through the interface: input blocking, paging, filtering and sorting, the hover popup, the solution page, and a phone-width layout.
+115 automated tests in about 20 seconds. Backend tests compare against brute force and cover validation, security headers, rate limiting and edge cases such as empty views. Browser tests drive a real Chromium through the interface: input blocking, paging, filtering and sorting, the hover popup, the solution page, and a phone-width layout.
 
 **What would you improve next?**
 Support for larger matrices using a faster method alongside Leibniz, shared storage to allow several workers, accounts or per-user limits, cross-browser testing, and an accessibility audit.
