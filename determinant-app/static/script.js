@@ -716,7 +716,7 @@ $(function () {
     });
   }
 
-  // Message line under the jump box; bad marks it as an error.
+  // Message line under the permutation search box; bad marks it as an error.
   function setJumpNote(text, bad) {
     $('#jump-note').text(text).toggleClass('bad', !!bad);
   }

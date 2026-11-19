@@ -128,6 +128,12 @@
             <button type="button" data-order="asc" aria-pressed="false">Lowest first</button>
           </div>
         </div>
+        <!-- Search by permutation, to the left of the nonzero switch: type a permutation to open its page; jumpToPermutation() ranks it in the browser and reports problems in #jump-note below the controls. -->
+        <div class="jump-perm">
+          <label for="jump-perm">Search permutation</label>
+          <input id="jump-perm" type="text" inputmode="numeric" maxlength="40" placeholder="e.g. 3 1 2" autocomplete="off" spellcheck="false">
+          <button type="button" class="btn" id="jump-go">Go</button>
+        </div>
         <div class="switch-wrap">
           <button type="button" class="switch" id="nz-switch" role="switch" aria-checked="false">
             <span class="track"><span class="knob"></span></span>
@@ -135,14 +141,7 @@
           </button>
         </div>
       </div>
-
-      <!-- Jump box: type a permutation to open its page; jumpToPermutation() ranks it in the browser and reports problems in #jump-note. -->
-      <div class="jump-perm">
-        <label for="jump-perm">Go to permutation</label>
-        <input id="jump-perm" type="text" inputmode="numeric" maxlength="40" placeholder="e.g. 3 1 2" autocomplete="off" spellcheck="false">
-        <button type="button" class="btn" id="jump-go">Go</button>
-        <span class="note" id="jump-note" role="status"></span>
-      </div>
+      <p class="note jump-note" id="jump-note" role="status"></p>
 
       <!-- Strip: 40 bars of subtotals across all terms, filled by renderStrip(). Clicking a bar loads the page containing that slice. -->
       <div class="strip-wrap" id="strip-wrap">

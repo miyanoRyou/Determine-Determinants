@@ -293,8 +293,8 @@ $(function () {
     var det = fmt(state.info.determinant);
     if (state.kind === 'full') {
       $('#sol-sums').html(
-        sumBox('Green terms together', fmtRat(pos.n, pos.d, state.mode), 'pos') +
-        sumBox('Coral terms together', fmtRat(neg.n, neg.d, state.mode), 'neg'));
+        sumBox('Positive terms together', fmtRat(pos.n, pos.d, state.mode), 'pos') +
+        sumBox('Negative terms together', fmtRat(neg.n, neg.d, state.mode), 'neg'));
       $('#sol-eq').html('det(A) = ' + esc(fmtRat(pos.n, pos.d, state.mode)) + ' ' + MINUS + ' ' + esc(fmtRat(neg.n, neg.d, state.mode)) + ' = <strong>' + esc(det) + '</strong>');
     } else {
       var d = state.winData;
